@@ -134,19 +134,19 @@ Compliance Resources:
         pdf.multi_cell(0, 8, additional_info, 0, 1)
     
     # Return PDF as bytes
-    return pdf.output(dest='S').encode('latin-1')
+    return pdf.output(dest='S')
 
 
 def make_attestation_pdf(row: Dict[str, Any]) -> bytes:
     """
     Generate a professional provider attestation PDF.
     
-    This function creates a clean, professional attestation form with claim details
-    and a signature section for provider attestation.
+    This function creates a clean, professional attestation form with claim details,
+    compliance issues, and a signature section for provider attestation.
     
     Args:
         row: Dictionary containing claim information with expected columns:
-             ClaimID, PatientID, ICD10, ProcCode, Provider, ServiceDate
+             ClaimID, PatientID, ICD10, ProcCode, Provider, ServiceDate, Issues
         
     Returns:
         PDF content as bytes
@@ -161,6 +161,7 @@ def make_attestation_pdf(row: Dict[str, Any]) -> bytes:
     icd10 = str(row.get('ICD10', ''))
     proc_code = str(row.get('ProcCode', ''))
     service_date = str(row.get('ServiceDate', ''))
+    issues = row.get('Issues', [])
     
     # Validate required fields
     if not claim_id or not provider_name:
@@ -169,14 +170,14 @@ def make_attestation_pdf(row: Dict[str, Any]) -> bytes:
     # Create PDF with professional settings
     pdf = FPDF()
     pdf.add_page()
-    pdf.set_auto_page_break(auto=False)
+    pdf.set_auto_page_break(auto=True, margin=15)
     
     # Set 1-inch margins (72 points = 1 inch)
     pdf.set_margins(72, 72, 72)
     
-    # Title - "Provider Attestation" centered
-    pdf.set_font('Arial', 'B', 18)
-    pdf.cell(0, 20, 'Provider Attestation', 0, 1, 'C')
+    # Title - "Provider Attestation Form" centered
+    pdf.set_font('Arial', 'B', 20)
+    pdf.cell(0, 20, 'Provider Attestation Form', 0, 1, 'C')
     pdf.ln(10)
     
     # Header with today's date
@@ -186,19 +187,24 @@ def make_attestation_pdf(row: Dict[str, Any]) -> bytes:
     pdf.ln(15)
     
     # Claim details in clean table-style layout
-    pdf.set_font('Arial', 'B', 14)
-    pdf.cell(0, 12, 'Claim Details', 0, 1)
+    pdf.set_font('Arial', 'B', 16)
+    pdf.cell(0, 12, 'Claim Information', 0, 1)
     pdf.ln(8)
     
     # Table-style layout for claim information with consistent spacing
     pdf.set_font('Arial', '', 12)
     
     # Define label width for consistent alignment
-    label_width = 50
+    label_width = 60
     
     # Claim ID
     pdf.cell(label_width, 10, 'Claim ID:', 0, 0)
     pdf.cell(0, 10, claim_id, 0, 1)
+    pdf.ln(3)
+    
+    # Provider
+    pdf.cell(label_width, 10, 'Provider:', 0, 0)
+    pdf.cell(0, 10, provider_name, 0, 1)
     pdf.ln(3)
     
     # Patient ID
@@ -212,38 +218,49 @@ def make_attestation_pdf(row: Dict[str, Any]) -> bytes:
     pdf.ln(3)
     
     # Diagnosis (ICD-10)
-    pdf.cell(label_width, 10, 'Diagnosis (ICD-10):', 0, 0)
+    pdf.cell(label_width, 10, 'ICD-10:', 0, 0)
     pdf.cell(0, 10, icd10, 0, 1)
     pdf.ln(3)
     
     # Procedure Code
-    pdf.cell(label_width, 10, 'Procedure Code:', 0, 0)
+    pdf.cell(label_width, 10, 'ProcCode:', 0, 0)
     pdf.cell(0, 10, proc_code, 0, 1)
-    pdf.ln(3)
+    pdf.ln(15)
     
-    # Provider
-    pdf.cell(label_width, 10, 'Provider:', 0, 0)
-    pdf.cell(0, 10, provider_name, 0, 1)
-    pdf.ln(20)
+    # Compliance Issues section (if any)
+    if issues and len(issues) > 0:
+        pdf.set_font('Arial', 'B', 16)
+        pdf.cell(0, 12, 'Compliance Issues Identified', 0, 1)
+        pdf.ln(8)
+        
+        pdf.set_font('Arial', '', 12)
+        for i, issue in enumerate(issues, 1):
+            pdf.cell(15, 10, f'{i}.', 0, 0)
+            pdf.multi_cell(0, 10, issue, 0, 'L')
+            pdf.ln(3)
+        
+        pdf.ln(10)
     
     # Attestation section
-    pdf.set_font('Arial', 'B', 14)
-    pdf.cell(0, 12, 'Attestation', 0, 1)
+    pdf.set_font('Arial', 'B', 16)
+    pdf.cell(0, 12, 'Provider Attestation', 0, 1)
     pdf.ln(8)
     
-    # Attestation statement
+    # Standard attestation statement
     pdf.set_font('Arial', '', 12)
-    attestation_text = """I attest that the diagnoses and procedures billed on this claim are supported by contemporaneous clinical documentation for the date of service listed above."""
+    attestation_text = """I attest that the documentation provided is accurate and complete for the services billed. I understand that falsification or omission may result in penalties under applicable law."""
     
-    pdf.multi_cell(0, 10, attestation_text, 0, 1)
+    pdf.multi_cell(0, 10, attestation_text, 0, 'L')
     pdf.ln(30)
     
-    # Footer with signature section
+    # Signature section
     pdf.set_font('Arial', '', 12)
-    pdf.cell(0, 10, 'Provider Signature: _________________________   Date: ___________', 0, 1)
+    pdf.cell(0, 10, 'Provider Signature: _________________________', 0, 1)
+    pdf.ln(10)
+    pdf.cell(0, 10, 'Date: ___________', 0, 1)
     
     # Return PDF as bytes
-    return pdf.output(dest='S').encode('latin-1')
+    return pdf.output(dest='S')
 
 
 def zip_attestations(df: pd.DataFrame) -> bytes:
@@ -277,7 +294,7 @@ def zip_attestations(df: pd.DataFrame) -> bytes:
         for index, row in df.iterrows():
             # Only process rows with issues
             issues = row.get('Issues', [])
-            if issues:  # Non-empty issues list
+            if issues and len(issues) > 0:  # Non-empty issues list
                 try:
                     # Generate PDF for this row
                     pdf_bytes = make_attestation_pdf(row.to_dict())
@@ -289,7 +306,7 @@ def zip_attestations(df: pd.DataFrame) -> bytes:
                     safe_provider = "".join(c for c in provider_name if c.isalnum() or c in (' ', '-', '_')).rstrip()
                     safe_provider = safe_provider.replace(' ', '_')
                     
-                    filename = f"attestation_{claim_id}_{safe_provider}.pdf"
+                    filename = f"Claim_{claim_id}_{safe_provider}.pdf"
                     
                     # Add PDF to ZIP
                     zip_file.writestr(filename, pdf_bytes)
@@ -299,13 +316,6 @@ def zip_attestations(df: pd.DataFrame) -> bytes:
                     # Log error but continue processing other rows
                     print(f"Warning: Failed to generate PDF for row {index}: {e}")
                     continue
-    
-    if pdf_count == 0:
-        # Create a placeholder ZIP with a message
-        zip_buffer = io.BytesIO()
-        with zipfile.ZipFile(zip_buffer, 'w', zipfile.ZIP_DEFLATED) as zip_file:
-            message = "No claims with compliance issues found. No attestations generated."
-            zip_file.writestr("no_attestations_needed.txt", message)
     
     # Return ZIP file as bytes
     zip_buffer.seek(0)

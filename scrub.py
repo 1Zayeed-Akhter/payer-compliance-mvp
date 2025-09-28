@@ -310,28 +310,47 @@ def apply_checks(df: pd.DataFrame) -> pd.DataFrame:
 
 def cleaned_csv_bytes(df: pd.DataFrame) -> bytes:
     """
-    Export a DataFrame to CSV format as bytes.
+    Export a DataFrame to CSV format as bytes, including only flagged claims.
     
-    This function converts a DataFrame to CSV format and returns it as bytes,
-    which is useful for downloading or streaming the data.
+    This function filters the DataFrame to include only rows with compliance issues,
+    formats the Issues column as a semicolon-joined string, and returns the CSV as bytes.
     
     Args:
-        df: DataFrame to export to CSV
+        df: DataFrame to export to CSV (must contain 'Issues' column)
         
     Returns:
-        Bytes containing the CSV data
+        Bytes containing the CSV data with only flagged claims
         
     Raises:
-        ValueError: If the DataFrame is empty
+        ValueError: If the DataFrame is empty or missing 'Issues' column
     """
     if df.empty:
         raise ValueError("DataFrame cannot be empty")
+    
+    if 'Issues' not in df.columns:
+        raise ValueError("DataFrame must contain an 'Issues' column")
+    
+    # Filter to only include rows with issues
+    flagged_df = df[df['Issues'].apply(lambda x: len(x) > 0)].copy()
+    
+    if flagged_df.empty:
+        # Return empty CSV with headers if no flagged claims
+        csv_buffer = io.StringIO()
+        df.head(0).to_csv(csv_buffer, index=False)
+        csv_string = csv_buffer.getvalue()
+        return csv_string.encode('utf-8')
+    
+    # Format Issues column as semicolon-joined string
+    flagged_df = flagged_df.copy()
+    flagged_df['Issues'] = flagged_df['Issues'].apply(
+        lambda issues: '; '.join(issues) if issues else ''
+    )
     
     # Create a StringIO buffer to write CSV data
     csv_buffer = io.StringIO()
     
     # Write DataFrame to CSV buffer
-    df.to_csv(csv_buffer, index=False)
+    flagged_df.to_csv(csv_buffer, index=False)
     
     # Get the CSV string and convert to bytes
     csv_string = csv_buffer.getvalue()

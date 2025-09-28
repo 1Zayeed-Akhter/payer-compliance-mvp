@@ -73,15 +73,19 @@ def main() -> None:
                         st.session_state['df_with_issues'] = df_with_issues
                         st.session_state['original_df'] = df
                         
-                        # Display results
-                        display_compliance_results(df_with_issues)
-                        
-                        # Generate downloads
-                        generate_download_buttons(df_with_issues)
-                        
                     except Exception as e:
                         st.error(f"❌ Error running compliance checks: {str(e)}")
                         st.exception(e)
+            
+            # Check if we have compliance results in session state and display them
+            if 'df_with_issues' in st.session_state:
+                df_with_issues = st.session_state['df_with_issues']
+                
+                # Display results
+                display_compliance_results(df_with_issues)
+                
+                # Generate downloads
+                generate_download_buttons(df_with_issues)
                     
         except Exception as e:
             st.error(f"❌ Error processing file: {str(e)}")
