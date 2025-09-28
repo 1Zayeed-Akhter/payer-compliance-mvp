@@ -1,0 +1,21 @@
+ClaimID,PatientID,ICD10,ProcCode,Provider,DocStatus,ServiceDate
+CLM0001,PAT0001,Z51.11,99213,Dr. Sarah Johnson - Cardiology,Complete,2024-01-15
+CLM0002,PAT0002,M25.561,99214,Dr. Michael Chen - Orthopedics,Complete,2024-01-16
+CLM0003,PAT0003,E11.9,99215,Dr. Emily Rodriguez - Internal Medicine,Complete,2024-01-17
+CLM0004,PAT0004,L70.9,99202,Dr. James Wilson - Dermatology,Complete,2024-01-18
+CLM0005,PAT0005,J06.9,99203,Dr. Lisa Thompson - Pediatrics,Complete,2024-01-19
+CLM0006,PAT0006,I25.10,99213,Dr. Sarah Johnson - Cardiology,Complete,2024-01-20
+CLM0007,PAT0007,S72.001A,99214,Dr. Michael Chen - Orthopedics,Complete,2024-01-21
+CLM0008,PAT0008,N18.6,99215,Dr. Emily Rodriguez - Internal Medicine,Complete,2024-01-22
+CLM0009,PAT0009,B07.9,99202,Dr. James Wilson - Dermatology,Complete,2024-01-23
+CLM0010,PAT0010,H10.9,99203,Dr. Lisa Thompson - Pediatrics,Complete,2024-01-24
+CLM0011,PAT0011,I48.91,99213,Dr. Sarah Johnson - Cardiology,Complete,2024-01-25
+CLM0012,PAT0012,M79.3,99214,Dr. Michael Chen - Orthopedics,Complete,2024-01-26
+CLM0013,PAT0013,K21.9,99215,Dr. Emily Rodriguez - Internal Medicine,Complete,2024-01-27
+CLM0014,PAT0014,L30.9,99202,Dr. James Wilson - Dermatology,Complete,2024-01-28
+CLM0015,PAT0015,R50.9,99203,Dr. Lisa Thompson - Pediatrics,Complete,2024-01-29
+CLM0016,PAT0016,I10,99213,Dr. Sarah Johnson - Cardiology,Complete,2024-01-30
+CLM0017,PAT0017,M25.511,99214,Dr. Michael Chen - Orthopedics,Complete,2024-01-31
+CLM0018,PAT0018,E78.5,99215,Dr. Emily Rodriguez - Internal Medicine,Complete,2024-02-01
+CLM0019,PAT0019,L71.9,99202,Dr. James Wilson - Dermatology,Complete,2024-02-02
+CLM0020,PAT0020,J44.1,99203,Dr. Lisa Thompson - Pediatrics,Complete,2024-02-03

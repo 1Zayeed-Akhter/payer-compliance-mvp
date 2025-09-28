@@ -1,0 +1,110 @@
+# Payer Compliance Scrub - Project Rules
+
+## Project Overview
+This is a demo MVP for claims compliance checking and provider attestation generation. The tool processes claims CSV files, identifies compliance issues, and generates provider attestation PDFs.
+
+## ⚠️ CRITICAL HIPAA WARNING
+- **THIS IS A DEMO ONLY** - Never use with real PHI (Protected Health Information) data
+- This tool is NOT HIPAA compliant and should not be used in production
+- All data should be synthetic/demo data only
+- Always include HIPAA disclaimers in UI and documentation
+
+## Python Standards
+- **Python Version**: 3.11+
+- **Code Style**: PEP 8 compliant
+- **Type Hints**: Use type hints for all function parameters and return values
+- **Docstrings**: All functions must have docstrings following Google style
+- **Imports**: Use absolute imports, group by standard library, third-party, local
+
+## Testing Requirements
+- **Test-First**: Write tests before implementing features when possible
+- **Coverage**: Aim for >90% test coverage on core logic
+- **Test Structure**: Use pytest with descriptive test class and method names
+- **Test Data**: Use synthetic data only, never real PHI
+
+## Code Organization
+- **Functions**: Keep functions small and pure when possible
+- **Separation of Concerns**: UI logic separate from business logic
+- **Error Handling**: Graceful error handling with user-friendly messages
+- **Logging**: Use appropriate logging levels for debugging
+
+## File Structure
+```
+app.py          # Streamlit UI only
+scrub.py        # Core compliance logic and rules
+pdfs.py         # PDF generation functionality
+tests/          # All test files
+requirements.txt # Dependencies
+```
+
+## Dependencies
+- **Minimal Dependencies**: Only add essential packages
+- **Version Pinning**: Pin major versions in requirements.txt
+- **No Extra Dependencies**: Avoid unnecessary packages
+
+## Compliance Rules
+- **Rule-Based**: Use simple, deterministic rules for compliance checking
+- **Severity Levels**: Categorize issues as low/medium/high severity
+- **Audit Trail**: Maintain clear audit trail of all compliance decisions
+- **Documentation**: Document all compliance rules and their rationale
+
+## UI/UX Guidelines
+- **Clear Disclaimers**: Prominent HIPAA and demo-only warnings
+- **User-Friendly**: Intuitive interface with clear instructions
+- **Error Messages**: Helpful error messages for common issues
+- **Progress Indicators**: Show progress for long-running operations
+
+## Security Considerations
+- **No Real Data**: Never process real PHI data
+- **Input Validation**: Validate all user inputs
+- **File Handling**: Secure file upload and processing
+- **Error Information**: Don't expose sensitive information in error messages
+
+## Performance
+- **Efficient Processing**: Optimize for reasonable file sizes (hundreds of claims)
+- **Memory Management**: Handle large datasets efficiently
+- **Response Time**: Provide feedback for long-running operations
+
+## Documentation
+- **README**: Comprehensive setup and usage instructions
+- **Code Comments**: Explain complex business logic
+- **API Documentation**: Document all public functions
+- **Deployment Guide**: Clear deployment instructions for Streamlit Cloud
+
+## Git Workflow
+- **Commit Messages**: Clear, descriptive commit messages
+- **Branch Naming**: Use descriptive branch names (feature/, bugfix/, etc.)
+- **Pull Requests**: Require code review for all changes
+- **Testing**: All tests must pass before merging
+
+## Deployment
+- **Streamlit Cloud**: Primary deployment target
+- **Environment**: Use environment variables for configuration
+- **Monitoring**: Basic error monitoring and logging
+- **Rollback**: Ability to quickly rollback deployments
+
+## Code Review Checklist
+- [ ] No real PHI data in code or tests
+- [ ] HIPAA disclaimers present in UI
+- [ ] Type hints on all functions
+- [ ] Docstrings on all functions
+- [ ] Tests for new functionality
+- [ ] Error handling implemented
+- [ ] Performance considerations addressed
+- [ ] Security best practices followed
+
+## Common Patterns
+- Use dataclasses for structured data (ComplianceResult)
+- Use enums for fixed sets of values (severity levels)
+- Use context managers for file operations
+- Use list comprehensions for data transformations
+- Use pandas for data manipulation and validation
+
+## Anti-Patterns to Avoid
+- Don't store real PHI data anywhere
+- Don't use hardcoded credentials or API keys
+- Don't ignore error conditions
+- Don't use mutable default arguments
+- Don't mix UI logic with business logic
+- Don't skip input validation
+- Don't expose internal implementation details in error messages
