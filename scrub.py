@@ -210,6 +210,27 @@ def check_date_format(claim_data: Dict[str, Any]) -> List[str]:
     return issues
 
 
+# Centralized issue label mapping for consistent terminology
+ISSUE_LABEL_MAPPING = {
+    "Missing documentation": "Medical record not available for date of service",
+    "High-audit-risk diagnosis": "Diagnosis may not meet CMS validation criteria", 
+    "High-cost procedure requires attached documentation": "Procedure billed without required supporting documentation"
+    # Keep "Potential non-covered pair", "Missing telehealth modifier" as-is
+}
+
+def map_issue_labels(issues: List[str]) -> List[str]:
+    """
+    Map issue labels to standardized terminology.
+    
+    Args:
+        issues: List of raw issue labels
+        
+    Returns:
+        List of mapped issue labels
+    """
+    return [ISSUE_LABEL_MAPPING.get(issue, issue) for issue in issues]
+
+
 def check_claim(row: Dict[str, Any]) -> List[str]:
     """
     Check a single claim row for specific compliance issues.
@@ -242,6 +263,32 @@ def check_claim(row: Dict[str, Any]) -> List[str]:
     doc_status = str(row.get("DocStatus", ""))
     if proc_code in ["J9355", "J1940"] and doc_status != "Attached":
         issues.append("High-cost procedure requires attached documentation")
+    
+    # Rule 5: NCCI pair check (DEMO ONLY - hardcoded pairs)
+    # NOTE: This is a demonstration stub with a small hardcoded set
+    # In production, this would use a comprehensive NCCI database
+    ncci_pairs = {("11055", "99213")}  # DEMO ONLY - minimal hardcoded set
+    proc_code = str(row.get("ProcCode", ""))
+    if proc_code in ["11055", "99213"]:  # Check if either code is in our demo pairs
+        for pair in ncci_pairs:
+            if proc_code in pair:
+                # Simple check - in real implementation would check for both codes on same claim
+                issues.append("Potential non-covered pair")
+                break
+    
+    # Rule 6: Telehealth modifier check (DEMO ONLY - hardcoded rules)
+    # NOTE: This is a demonstration stub with simplified logic
+    # In production, this would use comprehensive telehealth billing rules
+    telehealth_cpts = {"99212", "99213", "99214", "99215"}
+    pos = str(row.get("POS", ""))
+    modifiers = str(row.get("Modifiers", ""))
+    
+    if proc_code in telehealth_cpts and pos in ["02", "10"]:
+        if "95" not in modifiers:
+            issues.append("Missing telehealth modifier")
+    
+    # Apply terminology mapping
+    issues = map_issue_labels(issues)
     
     return issues
 

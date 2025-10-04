@@ -107,6 +107,56 @@
 - **List Query**: Updated to use window function for selecting most recent attestation per claim
 - **Data Integrity**: Ensures one-to-one relationship between claims and attestations
 
+## [v4.0.0] - 2024-01-XX - Terminology Standardization & Enhanced Demo Data
+
+### Added
+- **Centralized Terminology Mapping**: New `ISSUE_LABEL_MAPPING` in `scrub.py` for consistent issue labels:
+  - "Missing documentation" → "Medical record not available for date of service"
+  - "High-audit-risk diagnosis" → "Diagnosis may not meet CMS validation criteria"
+  - "High-cost procedure requires attached documentation" → "Procedure billed without required supporting documentation"
+- **Enhanced Compliance Rules**: Added demo-only stubs for advanced compliance checking:
+  - **NCCI Pair Check**: Hardcoded demo pairs like (11055, 99213) → "Potential non-covered pair"
+  - **Telehealth Modifier Check**: Validates modifier "95" for telehealth CPT codes with POS 02/10
+- **Comprehensive Demo Data**: New `demo_data.py` module with:
+  - `generate_demo_dataset()` function for 50 synthetic rows with ~50% flagged distribution
+  - 6 provider specialties with realistic names
+  - Mix of ICD-10 codes including high-audit-risk (I50, C50)
+  - CPT codes including telehealth (99212-99215) and high-cost J-codes
+  - New POS (Place of Service) and Modifiers columns
+  - Strategic issue distribution for comprehensive testing
+- **Enhanced UI**: Updated app interface with:
+  - Prominent top notice: "Demo only. Do not upload PHI. This tool is not HIPAA compliant."
+  - "What this does" expandable info box explaining tool capabilities
+  - "Generate Demo Dataset (50 rows)" button with statistics display
+  - Dataset statistics showing distribution and flagged claim counts
+
+### Enhanced Features
+- **Issue Label Standardization**: All compliance issues now use professional, CMS-aligned terminology
+- **Advanced Rule Stubs**: Foundation for NCCI and telehealth compliance checking
+- **Demo Data Intelligence**: Realistic synthetic data with proper issue distribution
+- **User Education**: Clear explanation of tool capabilities and limitations
+- **Statistics Dashboard**: Real-time demo dataset statistics with distribution breakdowns
+
+### Technical Improvements
+- **Modular Design**: Separated demo data generation into dedicated module
+- **Data Validation**: Enhanced data generation with realistic medical coding patterns
+- **Terminology Consistency**: Centralized mapping ensures consistent issue labeling
+- **Demo-First Approach**: Comprehensive demo data for thorough testing
+- **Professional Terminology**: CMS-aligned issue descriptions for audit readiness
+
+### Data Structure Enhancements
+- **New Columns**: Added POS (Place of Service) and Modifiers columns to support advanced rules
+- **Realistic Coding**: Mix of common CPT codes, ICD-10 diagnoses, and documentation statuses
+- **Issue Distribution**: Strategic placement of compliance issues for comprehensive testing
+- **Provider Variety**: Multiple specialties with realistic naming conventions
+
+### Preserved Functionality
+- ✅ All existing compliance rules and checks
+- ✅ PDF generation and attestation workflow
+- ✅ Database operations and audit trail
+- ✅ HIPAA disclaimers and demo warnings
+- ✅ CSV export functionality unchanged
+
 ## [v3.0.0] - 2024-01-XX - PDF Polish & Enhanced Audit Trail
 
 ### Added
