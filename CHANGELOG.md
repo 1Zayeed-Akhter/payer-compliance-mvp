@@ -106,3 +106,62 @@
 - **Attestation Insert**: Modified to use `WHERE NOT EXISTS` to prevent duplicate attestation records
 - **List Query**: Updated to use window function for selecting most recent attestation per claim
 - **Data Integrity**: Ensures one-to-one relationship between claims and attestations
+
+## [v3.0.0] - 2024-01-XX - PDF Polish & Enhanced Audit Trail
+
+### Added
+- **Enhanced PDF Generation**: Completely redesigned `make_attestation_pdf()` with:
+  - Professional title: "Provider Attestation – CMS Audit Preparation"
+  - Deep-teal decorative line under title
+  - Improved layout with consistent spacing and typography
+  - Signature handling for both unsigned and signed attestations
+  - Electronic signature display with name and ISO timestamp
+  - "Confidential – Demonstration Use Only" footer
+  - Subtle right-angle motif in footer corner for aesthetic appeal
+- **Enhanced ZIP Packet**: Upgraded `zip_attestations()` function with:
+  - Support for both dashboard DataFrame and compliance results DataFrame
+  - Automatic signature detection and PDF generation with signed status
+  - Root-level `audit_summary.csv` with comprehensive audit trail columns:
+    ClaimID, Provider, Issues, Status, SignedAt, VerifiedAt, LastReminderAt
+  - README.txt generation when no flagged claims exist
+- **Audit Trail CSV Download**: New standalone audit trail CSV download button in Compliance Review tab
+- **Dashboard Attestation Packet**: "Generate Attestation Packet" button in Attestation Dashboard for complete audit packages
+
+### Enhanced Features
+- **PDF Signature Handling**: 
+  - Unsigned attestations show blank signature lines
+  - Signed attestations display "Provider Signature (electronic)" with name and ISO timestamp
+  - Proper handling of signature_name and signed_ts parameters
+- **ZIP Packet Intelligence**:
+  - Detects dashboard vs compliance DataFrame automatically
+  - Generates PDFs with appropriate signature status
+  - Creates comprehensive audit summary CSV
+  - Handles edge cases (no flagged claims, missing data)
+- **Improved User Experience**:
+  - Three-column download layout (CSV, ZIP, Audit Trail)
+  - Timestamped attestation packet downloads
+  - Enhanced error handling and user feedback
+  - Professional file naming conventions
+
+### Technical Improvements
+- **Function Signatures**: Updated `make_attestation_pdf()` to accept signature parameters
+- **Data Handling**: Robust handling of issues as both string and list formats
+- **ZIP Generation**: Enhanced to handle multiple DataFrame formats seamlessly
+- **Error Handling**: Comprehensive error handling for PDF generation and ZIP creation
+- **Code Organization**: Clean separation of concerns between PDF generation and ZIP packaging
+
+### Visual Enhancements
+- **PDF Aesthetics**: 
+  - Deep-teal accent line under title
+  - Consistent typography and spacing
+  - Professional signature blocks
+  - Subtle decorative elements
+- **UI Layout**: Three-column download section for better organization
+- **File Naming**: Timestamped attestation packets for version control
+
+### Preserved Functionality
+- ✅ All existing compliance rules and checks
+- ✅ CSV export functionality unchanged
+- ✅ Database operations and attestation workflow
+- ✅ HIPAA disclaimers and demo warnings
+- ✅ Sample data generation and testing capabilities

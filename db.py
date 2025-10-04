@@ -87,21 +87,33 @@ def upsert_claims(df: pd.DataFrame, db_path: str = "compliance.db") -> None:
             if not claim_id:
                 continue
                 
-            # Insert or update claims table
-            cursor.execute("""
-                INSERT OR REPLACE INTO claims 
-                (id, patient_id, provider, icd10, proc_code, doc_status, service_date, issues)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-            """, (
-                claim_id,
-                str(row.get('PatientID', '')),
-                str(row.get('Provider', '')),
-                str(row.get('ICD10', '')),
-                str(row.get('ProcCode', '')),
-                str(row.get('DocStatus', '')),
-                str(row.get('ServiceDate', '')),
-                str(row.get('Issues', ''))
-            ))
+            # Check if claim already exists
+            cursor.execute("SELECT id FROM claims WHERE id = ?", (claim_id,))
+            existing_claim = cursor.fetchone()
+            
+            if existing_claim:
+                # Update only the issues field for existing claims (preserve attestation status)
+                cursor.execute("""
+                    UPDATE claims 
+                    SET issues = ?
+                    WHERE id = ?
+                """, (str(row.get('Issues', '')), claim_id))
+            else:
+                # Insert new claim
+                cursor.execute("""
+                    INSERT INTO claims 
+                    (id, patient_id, provider, icd10, proc_code, doc_status, service_date, issues)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                """, (
+                    claim_id,
+                    str(row.get('PatientID', '')),
+                    str(row.get('Provider', '')),
+                    str(row.get('ICD10', '')),
+                    str(row.get('ProcCode', '')),
+                    str(row.get('DocStatus', '')),
+                    str(row.get('ServiceDate', '')),
+                    str(row.get('Issues', ''))
+                ))
             
             # Insert attestation record if it doesn't exist (only if no attestation exists)
             cursor.execute("""
@@ -299,6 +311,27 @@ def get_attestation_stats(db_path: str = "compliance.db") -> Dict[str, int]:
     conn.close()
     
     return stats
+
+
+def clear_all_data(db_path: str = "compliance.db") -> None:
+    """
+    Clear all data from the database (for demo purposes).
+    
+    Args:
+        db_path: Path to the SQLite database file
+    """
+    conn = sqlite3.connect(db_path)
+    cursor = conn.cursor()
+    
+    try:
+        cursor.execute("DELETE FROM attestations")
+        cursor.execute("DELETE FROM claims")
+        conn.commit()
+    except Exception as e:
+        conn.rollback()
+        raise e
+    finally:
+        conn.close()
 
 
 def cleanup_duplicate_attestations(db_path: str = "compliance.db") -> int:

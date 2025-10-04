@@ -8,6 +8,7 @@ import pandas as pd
 from typing import List, Dict, Any
 import tempfile
 import os
+from datetime import datetime
 
 from scrub import apply_checks, cleaned_csv_bytes
 from pdfs import zip_attestations
@@ -24,6 +25,11 @@ def main() -> None:
     
     # Initialize database
     db.init_db()
+    
+    # Clear old data on startup (for demo purposes)
+    if 'db_cleared' not in st.session_state:
+        db.clear_all_data()
+        st.session_state['db_cleared'] = True
     
     st.title("🏥 Payer Compliance Scrub")
     st.markdown("**Demo MVP** - Claims compliance checking and provider attestation")
@@ -152,6 +158,15 @@ def attestation_dashboard_tab() -> None:
         # Filter out claims without attestations (shouldn't happen, but safety check)
         claims_with_attestations = claims_df[claims_df['attestation_status'].notna()]
         
+        # Debug: Show what we're working with (temporary)
+        with st.expander("🔍 Debug Info", expanded=False):
+            st.write(f"Total claims from DB: {len(claims_df)}")
+            st.write(f"Claims with attestations: {len(claims_with_attestations)}")
+            st.write(f"Claims without attestations: {len(claims_df) - len(claims_with_attestations)}")
+            if len(claims_with_attestations) > 0:
+                st.write("Sample issues:")
+                st.write(claims_with_attestations['issues'].head(3).tolist())
+        
         if claims_with_attestations.empty:
             st.info("ℹ️ No attestations found in the database.")
             return
@@ -233,7 +248,7 @@ def attestation_dashboard_tab() -> None:
         
         # Remind pending > 48h button
         st.subheader("📧 Actions")
-        col1, col2, col3 = st.columns([1, 1, 3])
+        col1, col2, col3, col4 = st.columns([1, 1, 1, 2])
         
         with col1:
             if st.button("🔔 Remind Pending > 48h", type="secondary"):
@@ -247,6 +262,23 @@ def attestation_dashboard_tab() -> None:
                     st.rerun()
                 else:
                     st.info("ℹ️ No duplicate records found")
+        
+        with col3:
+            if st.button("📦 Generate Attestation Packet", type="primary"):
+                try:
+                    # Generate ZIP with dashboard data (includes signatures and status)
+                    zip_bytes = zip_attestations(claims_with_attestations)
+                    st.download_button(
+                        label="📦 Download Attestation Packet (ZIP)",
+                        data=zip_bytes,
+                        file_name=f"attestation_packet_{datetime.now().strftime('%Y%m%d_%H%M%S')}.zip",
+                        mime="application/zip",
+                        use_container_width=True,
+                        key="attestation_packet_download"
+                    )
+                    st.success("✅ Attestation packet ready for download!")
+                except Exception as e:
+                    st.error(f"❌ Error generating attestation packet: {str(e)}")
         
         # Display filtered claims table with actions
         st.subheader("📊 Flagged Claims Overview")
@@ -474,7 +506,7 @@ def generate_download_buttons(df_with_issues: pd.DataFrame) -> None:
     
     claims_with_issues = len(df_with_issues[df_with_issues['Issues'].apply(lambda x: len(x) > 0)])
     
-    col1, col2 = st.columns(2)
+    col1, col2, col3 = st.columns(3)
     
     with col1:
         st.subheader("📄 CSV Export")
@@ -508,8 +540,50 @@ def generate_download_buttons(df_with_issues: pd.DataFrame) -> None:
             st.info("ℹ️ No attestation PDFs needed - all claims are clean!")
             st.write("**No compliance issues found, so no provider attestations are required.**")
     
+    with col3:
+        st.subheader("📊 Audit Trail")
+        if claims_with_issues > 0:
+            try:
+                # Create audit trail CSV from compliance results
+                audit_df = df_with_issues[df_with_issues['Issues'].apply(lambda x: len(x) > 0)].copy()
+                audit_df = audit_df.assign(
+                    Status='Pending',
+                    SignedAt='',
+                    VerifiedAt='',
+                    LastReminderAt=''
+                )
+                audit_df['Issues'] = audit_df['Issues'].apply(
+                    lambda issues: '; '.join(issues) if issues else ''
+                )
+                
+                # Select and rename columns for audit trail
+                audit_columns = {
+                    'ClaimID': 'ClaimID',
+                    'Provider': 'Provider', 
+                    'Issues': 'Issues',
+                    'Status': 'Status',
+                    'SignedAt': 'SignedAt',
+                    'VerifiedAt': 'VerifiedAt',
+                    'LastReminderAt': 'LastReminderAt'
+                }
+                
+                audit_trail_df = audit_df[list(audit_columns.keys())].rename(columns=audit_columns)
+                csv_bytes = audit_trail_df.to_csv(index=False).encode('utf-8')
+                
+                st.download_button(
+                    label="📊 Download Audit Trail CSV",
+                    data=csv_bytes,
+                    file_name="audit_trail.csv",
+                    mime="text/csv",
+                    use_container_width=True
+                )
+            except Exception as e:
+                st.error(f"❌ Error generating audit trail: {str(e)}")
+        else:
+            st.info("ℹ️ No audit trail needed - all claims are clean!")
+    
     if claims_with_issues > 0:
-        st.info(f"ℹ️ **{claims_with_issues} claims** require provider attestations. The ZIP file will contain individual PDF attestation forms for each provider to review and sign.")
+        st.info(f"ℹ️ **{claims_with_issues} claims** require provider attestations. The ZIP file will contain individual PDF attestation forms for each provider to review and sign, plus an audit summary CSV.")
     else:
         st.success("✅ **All claims are compliant!** No provider attestations needed.")
 
